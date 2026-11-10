@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050508" />
+  <meta name="description" content="Pavan Gowda — BCA Undergrad, Cybersecurity Researcher, Python Systems Developer." />
+  <meta name="author" content="Pavan Gowda" />
+  <meta property="og:title" content="PAVAN GOWDA // Autonomous Swarm Construction Portfolio" />
+  <meta property="og:description" content="Undergrad BCA, Cybersecurity Researcher, Python Systems Developer & Defensive Infrastructure." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23050508'/><text y='70' x='15' fill='%23ff2442' font-size='60' font-family='monospace' font-weight='bold'>PG</text></svg>" />
+  <title>PAVAN GOWDA // Autonomous Swarm Construction Portfolio</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- GSAP Animation Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <!-- Google Fonts: JetBrains Mono & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --hud-red: #ff2442;
+      --hud-cyan: #00f0ff;
+      --hud-bg: #050508;
+      --hud-card: #0a0a12;
+      --hud-border: #1b1b28;
+    }
+
+    body {
+      background-color: var(--hud-bg);
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Cyber Blueprint Grid */
+    .bg-grid {
+      background-size: 38px 38px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+
+    /* Scroll progress indicator */
+    #hud-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--hud-cyan), var(--hud-red));
+      z-index: 100;
+      box-shadow: 0 0 10px var(--hud-cyan);
+    }
+
+    /* EVERY SINGLE MICRO-BOX GETS THIS */
+    .hud-unit {
+      position: relative;
+    }
+
+    /* Content starts hidden until an arrow physically drags its box */
+    .unit-content {
+      opacity: 0;
+      transform: scale(0.97);
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    }
+
+    .unit-content.revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Smooth glow accent on interactive cards */
+    .unit-content:hover {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.06);
+    }
+
+    /* The glowing blueprint wireframe box being dragged out */
+    .wireframe-box {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border: 1.5px dashed var(--hud-cyan);
+      background: rgba(0, 240, 255, 0.05);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+      pointer-events: none;
+      z-index: 50;
+      overflow: visible;
+    }
+
+    .wireframe-label {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      font-size: 8px;
+      color: var(--hud-cyan);
+      background: #050508;
+      padding: 1px 5px;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    .wireframe-box::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      width: 6px;
+      height: 6px;
+      background: var(--hud-cyan);
+    }
+    .wireframe-box::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      right: -3px;
+      width: 6px;
+      height: 6px;
+      background: var(--hud-cyan);
+    }
+
+    /* PERSISTENT ROAMING SWARM LAYER */
+    #swarm-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    .swarm-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 3px;
+      will-change: transform;
+      transform-origin: 3px 3px;
+      transition: filter 0.2s ease;
+    }
+
+    .swarm-cursor svg {
+      width: 15px;
+      height: 15px;
+      fill: #ffffff;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9));
+      transition: transform 0.15s ease-out;
+    }
+
+    .swarm-cursor .cursor-tag {
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 1px 4px;
+      border-radius: 2px;
+      background: rgba(5, 5, 8, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #cbd5e1;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    /* Reticle Corner Accents */
+    .corner-decor {
+      position: relative;
+    }
+    .corner-decor::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid var(--hud-red);
+      border-left: 2px solid var(--hud-red);
+      pointer-events: none;
+    }
+    .corner-decor::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid var(--hud-red);
+      border-right: 2px solid var(--hud-red);
+      pointer-events: none;
+    }
+
+    /* Interactive Radar Click Ripple */
+    .radar-pulse {
+      position: fixed;
+      border-radius: 50%;
+      border: 1px solid var(--hud-cyan);
+      background: radial-gradient(circle, rgba(0,240,255,0.2) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      animation: radarExpand 0.75s ease-out forwards;
+    }
+
+    @keyframes radarExpand {
+      0% { width: 0; height: 0; opacity: 1; }
+      100% { width: 180px; height: 180px; opacity: 0; }
+    }
+
+    /* HUD Cyber Toast */
+    #hud-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #050508;
+      border: 1px solid var(--hud-cyan);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.3);
+      color: #e2e8f0;
+      padding: 8px 16px;
+      font-size: 11px;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* HUD Scroll State Status Bar */
+    #scroll-indicator-tag {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 9px;
+      color: #64748b;
+      background: rgba(5,5,8,0.85);
+      border: 1px solid #1b1b28;
+      padding: 2px 6px;
+      border-radius: 2px;
+      z-index: 9990;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body class="bg-grid selection:bg-[#ff2442] selection:text-white">
+
+  <!-- TOP LASER SCROLL PROGRESS BAR -->
+  <div id="hud-progress"></div>
+
+  <!-- SCROLL LOOP ACTIVITY STATUS -->
+  <div id="scroll-indicator-tag" class="font-mono flex items-center gap-1.5">
+    <span id="scroll-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+    <span id="scroll-state-text">[SWARM // ENGINE_INITIALIZED]</span>
+  </div>
+
+  <!-- HUD CLIPBOARD TOAST -->
+  <div id="hud-toast" class="font-mono">
+    <span class="w-2 h-2 rounded-full bg-[#00f0ff] animate-ping"></span>
+    <span id="toast-text">[SYSTEM // COPIED TO CLIPBOARD]</span>
+  </div>
+
+  <!-- 24 PERSISTENT ROAMING CURSORS OVERLAY -->
+  <div id="swarm-canvas"></div>
+
+  <!-- TOP HUD HEADER (EVERY COMPONENT ATOMIZED) -->
+  <header class="border-b border-[#1b1b28] sticky top-0 bg-[#050508]/90 backdrop-blur z-40 px-6 py-3 flex items-center justify-between text-xs">
+    <div class="flex items-center gap-3">
+      <div class="hud-unit inline-block" data-label="[SYS // PING_NODE]">
+        <div class="unit-content flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-[#ff2442] animate-ping"></span>
+          <span class="text-gray-400 font-mono text-[10px]">[⚡ ONLINE]</span>
+        </div>
+      </div>
+
+      <div class="hud-unit inline-block" data-label="[CORE // IDENTITY]">
+        <div class="unit-content">
+          <span class="font-bold text-white tracking-widest uppercase">PAVAN.EXE // AUTONOMOUS_SWARM_BUILD</span>
+        </div>
+      </div>
+
+      <div class="hud-unit hidden md:inline-block" data-label="[NODE // TELEMETRY]">
+        <div class="unit-content text-gray-500">
+          <span>| [⎈] NODE: BLR-SOUTH // 127.0.0.1</span>
+        </div>
+      </div>
+
+      <div class="hud-unit hidden lg:inline-block" data-label="[STATUS // TELEMETRY]">
+        <div class="unit-content">
+          <span class="text-emerald-400 font-mono text-[10px] border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-950/20" id="telemetry-bar">
+            [◈] SWARM: 24/24 · LATENCY: 14ms
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-5">
+      <div class="hud-unit" data-label="[CLOCK // UTC_OFFSET]">
+        <div class="unit-content">
+          <div class="text-[#00f0ff] font-mono text-[11px] border border-[#00f0ff]/30 px-2 py-0.5 rounded bg-[#00f0ff]/5" id="clock">
+            [⌖] IST --:--:--
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-12 space-y-28">
+
+    <!-- 00: HERO SECTION (EVERY SINGLE PIECE OF TEXT PULLED INDIVIDUALLY) -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-6">
+      
+      <!-- Left Column: Title, Subtitle, Badges, Stats, Buttons -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <!-- MICRO-BOX 1: Giant Title -->
+        <div class="hud-unit" data-label="[TITLE // PORTFOLIO]">
+          <div class="unit-content">
+            <h1 class="text-6xl sm:text-8xl font-black font-['Space_Grotesk'] tracking-tighter text-[#ff2442] leading-none select-none flex items-center gap-2">
+              <span class="text-4xl text-[#ff2442]/60 font-mono">[§]</span> PORTFOLIO
+            </h1>
+          </div>
+        </div>
+
+        <!-- MICRO-BOX 2: Subtitle Greeting -->
+        <div class="hud-unit inline-block" data-label="[ID // PAVAN_GOWDA]">
+          <div class="unit-content flex items-center gap-2">
+            <span class="text-xl font-bold text-white flex items-center gap-1.5"><i data-lucide="terminal" class="w-5 h-5 text-[#00f0ff]"></i> [›] Hello, I'm</span>
+            <span class="text-[#ff2442] bg-[#ff2442]/10 px-2.5 py-0.5 rounded border border-[#ff2442]/30 text-lg font-bold">PAVAN GOWDA.</span>
+          </div>
+        </div>
+
+        <!-- MICRO-BOXES 3, 4, 5: Each Badge is Drawn by its Own Arrow -->
+        <div class="flex flex-wrap gap-2 pt-1">
+          <div class="hud-unit" data-label="[TAG // CYBER]">
+            <div class="unit-content inline-flex items-center gap-1.5 text-xs text-[#00f0ff] bg-[#00f0ff]/10 border border-[#00f0ff]/20 px-3 py-1 rounded uppercase">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              <span>[◈] Cybersecurity Researcher</span>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[TAG // PYTHON]">
+            <div class="unit-content inline-flex items-center gap-1.5 text-xs text-[#ff2442] bg-[#ff2442]/10 border border-[#ff2442]/20 px-3 py-1 rounded uppercase">
+              <i data-lucide="code" class="w-3.5 h-3.5"></i>
+              <span>[λ] Python & Systems Engineer</span>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[TAG // BCA]">
+            <div class="unit-content inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/30 border border-emerald-500/30 px-3 py-1 rounded uppercase">
+              <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+              <span>[⌘] BCA Undergrad (Bengaluru)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MICRO-BOX 6A, 6B: Bio Text Broken Down into Distinct Micro-Boxes -->
+        <div class="space-y-2 max-w-xl text-xs sm:text-sm text-gray-400 leading-relaxed">
+          <div class="hud-unit" data-label="[DIRECTIVE // BIO_01]">
+            <div class="unit-content flex items-start gap-2">
+              <span class="text-[#00f0ff] font-mono mt-0.5">[►]</span>
+              <span>Undergraduate Computer Applications student specializing in <strong class="text-white">network security auditing, penetration testing logic, Python backend infrastructure</strong>, and data-driven analytical engines.</span>
+            </div>
+          </div>
+          <div class="hud-unit" data-label="[DIRECTIVE // BIO_02]">
+            <div class="unit-content flex items-start gap-2">
+              <span class="text-[#ff2442] font-mono mt-0.5">[⌖]</span>
+              <span>Focused on discovering vulnerabilities, writing defensive code, and engineering resilient digital architectures.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MICRO-BOXES 7, 8, 9, 10: Every Single Stat Box is Drawn Separately -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          
+          <div class="hud-unit" data-label="[STAT // 14_VECTORS]">
+            <div class="unit-content p-3 border border-[#1b1b28] bg-[#0a0a12] rounded">
+              <div class="flex items-center justify-between text-white">
+                <span class="text-2xl font-bold font-['Space_Grotesk']">14</span>
+                <i data-lucide="shield" class="w-4 h-4 text-[#00f0ff]"></i>
+              </div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">[◈] Security Vectors</div>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[STAT // 06_REPOS]">
+            <div class="unit-content p-3 border border-[#1b1b28] bg-[#0a0a12] rounded">
+              <div class="flex items-center justify-between text-[#00f0ff]">
+                <span class="text-2xl font-bold font-['Space_Grotesk']">06</span>
+                <i data-lucide="git-branch" class="w-4 h-4 text-[#00f0ff]"></i>
+              </div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">[⚡] Live Projects</div>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[STAT // DEGREE]">
+            <div class="unit-content p-3 border border-[#1b1b28] bg-[#0a0a12] rounded">
+              <div class="flex items-center justify-between text-[#ff2442]">
+                <span class="text-2xl font-bold font-['Space_Grotesk']">BCA</span>
+                <i data-lucide="award" class="w-4 h-4 text-[#ff2442]"></i>
+              </div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">[⌬] Degree Track (SNC)</div>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[STAT // CODE_LOSS]">
+            <div class="unit-content p-3 border border-[#1b1b28] bg-[#0a0a12] rounded">
+              <div class="flex items-center justify-between text-emerald-400">
+                <span class="text-2xl font-bold font-['Space_Grotesk']">0.00%</span>
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">[⌖] Loss Invariant</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MICRO-BOXES 11 & 12: Both Buttons Pulled by Cursors -->
+        <div class="flex flex-wrap gap-4 pt-1">
+          <div class="hud-unit" data-label="[BTN // EXPLORE]">
+            <div class="unit-content">
+              <a href="#deployments" class="bg-[#ff2442] text-white text-xs font-bold uppercase px-5 py-2.5 rounded shadow hover:bg-red-600 transition tracking-wider flex items-center gap-2">
+                [►] Explore Architectures <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[BTN // GITHUB]">
+            <div class="unit-content">
+              <a href="https://github.com/pavanindrajith-sketch" target="_blank" rel="noopener noreferrer" class="border border-[#1b1b28] bg-[#0a0a12] text-gray-400 hover:text-white hover:border-[#ff2442] text-xs uppercase px-5 py-2.5 rounded transition tracking-wider flex items-center gap-2">
+                <i data-lucide="github" class="w-3.5 h-3.5"></i> [⎈] GitHub Repositories ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Avatar Graphic Card (Atomized units) -->
+      <div class="lg:col-span-4 space-y-3">
+        <div class="hud-unit" data-label="[CORE_ENTITY // L7_OPERATOR]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-4 rounded corner-decor space-y-3">
+            <div class="relative overflow-hidden rounded bg-black aspect-square flex items-center justify-center border border-[#1b1b28]">
+              <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#101424] via-[#080a14] to-[#040408] relative">
+                <span class="text-7xl font-black font-['Space_Grotesk'] text-[#ff2442]/80 select-none tracking-tighter">PG</span>
+                <div class="absolute inset-0 border border-[#00f0ff]/10 rounded-full scale-75 animate-pulse"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#ff2442]/10 to-transparent opacity-40 pointer-events-none"></div>
+                <div class="absolute top-2 left-2 text-[9px] text-[#00f0ff] font-mono bg-black/60 px-2 py-0.5 border border-[#00f0ff]/30">
+                  [⚡] AUTH: PAVAN.EXE
+                </div>
+                <div class="absolute bottom-2 right-2 text-[9px] text-emerald-400 font-mono bg-black/60 px-2 py-0.5 border border-emerald-500/30">
+                  [λ] SHELL: /BIN/ZSH
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-[#1b1b28] text-[11px] space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-white font-bold flex items-center gap-1">[◈] PAVAN GOWDA</span>
+                <span class="text-[#ff2442] bg-[#ff2442]/10 border border-[#ff2442]/30 px-1.5 py-0.2 rounded text-[9px]">L7 OPERATOR</span>
+              </div>
+              <div class="flex justify-between text-[10px] text-gray-500">
+                <span>[§] SPECIALTY: DEFENSE & PYTHON</span>
+                <span>[⌖] BASE: BENGALURU, IN</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 01: BACKGROUND & PHILOSOPHY (EVERY CARD & DIRECTIVE ITEM PULLED) -->
+    <section id="about" class="space-y-6">
+      <div class="hud-unit inline-block" data-label="[SECTION // 01.00]">
+        <div class="unit-content text-xs uppercase text-[#ff2442] tracking-widest flex items-center gap-2">
+          <span class="w-6 h-[1px] bg-[#ff2442]"></span> [◈] // 01.00 BACKGROUND & PHILOSOPHY
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Manifesto Left Box -->
+        <div class="md:col-span-2 space-y-3">
+          <div class="hud-unit" data-label="[MANIFESTO // HEADER]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-4 rounded corner-decor">
+              <div class="text-[10px] text-[#00f0ff] uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                <i data-lucide="cpu" class="w-3.5 h-3.5"></i> [λ] Manifesto & Defense Invariant
+              </div>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[MANIFESTO // PARA_01]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded text-xs leading-relaxed text-gray-300">
+              <p class="flex items-start gap-2">
+                <span class="text-[#ff2442] font-mono mt-0.5">[►]</span>
+                <span>I am Pavan Gowda, an undergraduate in Computer Applications at KLE Society's S. Nijalingappa College, Bengaluru. My engineering philosophy revolves around <strong>"Building to Understand, Testing to Secure."</strong></span>
+              </p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[MANIFESTO // PARA_02]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded text-xs leading-relaxed text-gray-400">
+              <p class="flex items-start gap-2">
+                <span class="text-[#00f0ff] font-mono mt-0.5">[◈]</span>
+                <span>In an era of increasingly sophisticated attack vectors, reliable software requires proactive defense from line zero. By combining Python's algorithmic capabilities, Kali Linux audit frameworks, and responsive web systems, I examine how software exposes surface area and how to harden it against exploitation.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side 3 Directive Items Pulled Separately -->
+        <div class="space-y-3">
+          <div class="hud-unit" data-label="[DIRECTIVE // 01]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-3 rounded">
+              <div class="flex items-center gap-2 text-white text-[11px] font-semibold">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#ff2442]"></i> [⌖] Adversarial Modeling
+              </div>
+              <p class="text-gray-500 text-[10px] mt-1 flex items-start gap-1">
+                <span class="text-[#ff2442]">›</span> Understand exploit vectors prior to writing defensive layers.
+              </p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[DIRECTIVE // 02]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-3 rounded">
+              <div class="flex items-center gap-2 text-white text-[11px] font-semibold">
+                <i data-lucide="terminal" class="w-3.5 h-3.5 text-[#00f0ff]"></i> [λ] POSIX & Linux Standard
+              </div>
+              <p class="text-gray-500 text-[10px] mt-1 flex items-start gap-1">
+                <span class="text-[#00f0ff]">›</span> Deep comfort inside Unix environments and Bash scripting.
+              </p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[DIRECTIVE // 03]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-3 rounded">
+              <div class="flex items-center gap-2 text-white text-[11px] font-semibold">
+                <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i> [⌘] Data-Driven Decisions
+              </div>
+              <p class="text-gray-500 text-[10px] mt-1 flex items-start gap-1">
+                <span class="text-emerald-400">›</span> Analyze traffic datasets and metrics using Pandas.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Diagnostic Live Console Box: Each Log Pulled Separately -->
+      <div class="space-y-2">
+        <div class="hud-unit" data-label="[STREAM // LOG_01]">
+          <div class="unit-content p-2 bg-[#040407] rounded border border-[#1b1b28] font-mono text-[10px] text-gray-400 flex items-center gap-2">
+            <span class="text-[#ff2442] font-bold">[⚡ BOOT_01]</span> Virtualized environment Kali Linux / Debian 6.1.0-kali initialized.
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[STREAM // LOG_02]">
+          <div class="unit-content p-2 bg-[#040407] rounded border border-[#1b1b28] font-mono text-[10px] text-gray-400 flex items-center gap-2">
+            <span class="text-[#00f0ff] font-bold">[⎈ NET_02]</span> Socket handler listening on port 8080 (REST / Flask Worker).
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[STREAM // LOG_03]">
+          <div class="unit-content p-2 bg-[#040407] rounded border border-[#1b1b28] font-mono text-[10px] text-gray-400 flex items-center gap-2">
+            <span class="text-emerald-400 font-bold">[◈ AUDIT_03]</span> Security rule verified: zero-trust policy on unauthenticated endpoints.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02: THE 7-LAYER SYSTEM & SECURITY STACK -->
+    <section id="ecosystem" class="space-y-6">
+      <div class="hud-unit inline-block" data-label="[SECTION // 02.00]">
+        <div class="unit-content text-xs uppercase text-[#ff2442] tracking-widest flex items-center gap-2">
+          <span class="w-6 h-[1px] bg-[#ff2442]"></span> [◈] // 02.00 THE 7-LAYER SYSTEM & SECURITY STACK
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Layer 1-2 -->
+        <div class="hud-unit" data-label="[STACK // LAYER_1_2]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded corner-decor h-full flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] text-[#00f0ff] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <i data-lucide="layers" class="w-3 h-3"></i> [◈] Layer 1-2 // Operating Core
+              </div>
+              <h4 class="font-bold text-white mb-2 text-sm font-['Space_Grotesk']">[§] Linux Kernel & Kali Auditing</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed mb-4">
+                Command-line mastery, process scheduling, socket manipulation, authorized penetration test setups, and Bash tooling.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-1 text-[9px] text-[#00f0ff]">
+              <span class="bg-[#00f0ff]/10 px-1.5 py-0.5 rounded">[λ] Kali Linux</span>
+              <span class="bg-[#00f0ff]/10 px-1.5 py-0.5 rounded">[⎈] Ubuntu</span>
+              <span class="bg-[#00f0ff]/10 px-1.5 py-0.5 rounded">[›] Bash CLI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 3-4 -->
+        <div class="hud-unit" data-label="[STACK // LAYER_3_4]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded corner-decor h-full flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] text-[#ff2442] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <i data-lucide="cpu" class="w-3 h-3"></i> [⚡] Layer 3-4 // Logic & Analytics
+              </div>
+              <h4 class="font-bold text-white mb-2 text-sm font-['Space_Grotesk']">[λ] Python, Flask & Pandas</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed mb-4">
+                Algorithmic pipelines, data ingestion, microservice routing via Flask, dataset cleaning with Pandas, and data structure modeling.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-1 text-[9px] text-[#ff2442]">
+              <span class="bg-[#ff2442]/10 px-1.5 py-0.5 rounded">[◈] Python 3.x</span>
+              <span class="bg-[#ff2442]/10 px-1.5 py-0.5 rounded">[⌖] Flask</span>
+              <span class="bg-[#ff2442]/10 px-1.5 py-0.5 rounded">[⌘] Pandas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 5-7 -->
+        <div class="hud-unit" data-label="[STACK // LAYER_5_7]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded corner-decor h-full flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <i data-lucide="shield" class="w-3 h-3"></i> [⌖] Layer 5-7 // Interface & Defense
+              </div>
+              <h4 class="font-bold text-white mb-2 text-sm font-['Space_Grotesk']">[⌘] Web Interfaces & Threat Defense</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed mb-4">
+                Responsive frontend engineering (React, TypeScript, CSS), OSINT investigation protocols, and network packet telemetry.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-1 text-[9px] text-emerald-400">
+              <span class="bg-emerald-950/40 px-1.5 py-0.5 rounded">[⚡] React / TS</span>
+              <span class="bg-emerald-950/40 px-1.5 py-0.5 rounded">[◈] OSINT</span>
+              <span class="bg-emerald-950/40 px-1.5 py-0.5 rounded">[§] Network Defense</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 03: FLAGSHIP DEPLOYMENTS (ALL 6 PROJECTS DRAWN INDIVIDUALLY) -->
+    <section id="deployments" class="space-y-6">
+      <div class="hud-unit inline-block" data-label="[SECTION // 03.00]">
+        <div class="unit-content text-xs uppercase text-[#ff2442] tracking-widest flex items-center gap-2">
+          <span class="w-6 h-[1px] bg-[#ff2442]"></span> [◈] // 03.00 FLAGSHIP REPOSITORIES (ALL 6 BUILDS)
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <!-- Project 1 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_01]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-[#00f0ff] uppercase flex items-center gap-1"><i data-lucide="code" class="w-3 h-3"></i> [◈] Web System // 01</span>
+                <span class="text-gray-500 font-mono">[v2.1]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[§] Trip Companion Platform</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Comprehensive travel exploration web platform designed to streamline trip itineraries, destination cataloging, and interactive tourist routing with modular semantic layouts.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-[#00f0ff]">
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[λ] HTML5</span>
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[⎈] CSS3</span>
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[◈] Responsive UX</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/plan-a-trip-website" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_02]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-[#ff2442] uppercase flex items-center gap-1"><i data-lucide="database" class="w-3 h-3"></i> [⚡] Data Pipeline // 02</span>
+                <span class="text-gray-500 font-mono">[v1.8]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[λ] Real Estate Analytics Dashboard</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Python and Flask data engine parsing real estate housing figures, market trends, regional pricing variances, and aggregate statistical distributions.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-[#ff2442]">
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[◈] Python</span>
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[⌖] Flask</span>
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[⌘] Analytics</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/real-estate-dashboard" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_03]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-purple-400 uppercase flex items-center gap-1"><i data-lucide="gamepad-2" class="w-3 h-3"></i> [⌘] Reactive Engine // 03</span>
+                <span class="text-gray-500 font-mono">[v3.0]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[§] Portfolio Arcade Game</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Gamified interactive portfolio engine built on React, TypeScript, and Vite featuring keyboard event loops, high-score state tracking, and 60fps frame renders.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-purple-400">
+                <span class="border border-purple-400/30 bg-purple-400/5 px-2 py-0.5 rounded">[⚡] React</span>
+                <span class="border border-purple-400/30 bg-purple-400/5 px-2 py-0.5 rounded">[λ] TypeScript</span>
+                <span class="border border-purple-400/30 bg-purple-400/5 px-2 py-0.5 rounded">[⎈] Vite</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/PORTFOLIO-GAME" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 4 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_04]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-[#ff2442] uppercase flex items-center gap-1"><i data-lucide="server" class="w-3 h-3"></i> [⚡] Backend Web // 04</span>
+                <span class="text-gray-500 font-mono">[v1.2]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[λ] Pawan Real Estate Web Portal</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Full-featured real estate server and client application using Python routing, dynamic template rendering, property lookup, and form processing.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-[#ff2442]">
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[◈] Python</span>
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[⎈] Web Logic</span>
+                <span class="border border-[#ff2442]/30 bg-[#ff2442]/5 px-2 py-0.5 rounded">[§] Jinja</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/pawan_real_estate_web" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 5 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_05]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-[#00f0ff] uppercase flex items-center gap-1"><i data-lucide="layout" class="w-3 h-3"></i> [◈] Web System // 05</span>
+                <span class="text-gray-500 font-mono">[v2.0]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[§] Plan A Trip (Next-Gen UI)</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Re-engineered trip planner user interface featuring refined CSS grids, asynchronous layout changes, lightweight assets, and accessibility optimizations.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-[#00f0ff]">
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[λ] HTML5</span>
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[⎈] CSS3</span>
+                <span class="border border-[#00f0ff]/30 bg-[#00f0ff]/5 px-2 py-0.5 rounded">[◈] UI Arch</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/plan-a-trip-new-version" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 6 -->
+        <div class="hud-unit" data-label="[DOSSIER // PRJ_06]">
+          <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded h-full flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-amber-400 uppercase flex items-center gap-1"><i data-lucide="binary" class="w-3 h-3"></i> [⌖] Heuristic Game // 06</span>
+                <span class="text-gray-500 font-mono">[v1.1]</span>
+              </div>
+              <h4 class="text-base font-bold text-white font-['Space_Grotesk']">[λ] Deterministic Number-Guessing Engine</h4>
+              <p class="text-gray-400 text-[11px] leading-relaxed">
+                Algorithmic game logic executing binary-search based hint distributions, attempt counters, and state persistence for competitive leaderboard metrics.
+              </p>
+              <div class="flex flex-wrap gap-1.5 pt-1 text-[9px] text-amber-400">
+                <span class="border border-amber-400/30 bg-amber-400/5 px-2 py-0.5 rounded">[⚡] JavaScript</span>
+                <span class="border border-amber-400/30 bg-amber-400/5 px-2 py-0.5 rounded">[◈] Algorithms</span>
+                <span class="border border-amber-400/30 bg-amber-400/5 px-2 py-0.5 rounded">[⎈] State Machine</span>
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-[#1b1b28] flex justify-between items-center text-[11px]">
+              <span class="text-gray-500 font-mono">[✔] STATUS: PROD</span>
+              <a href="https://github.com/pavanindrajith-sketch/Demo-game" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-[#ff2442] transition flex items-center gap-1 font-semibold">
+                [►] Repo Dossier ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 04: THE 14-VECTOR CYBERSECURITY MATRIX (ALL 14 BOXES DRAWN INDIVIDUALLY) -->
+    <section id="cyber" class="space-y-6">
+      <div class="hud-unit inline-block" data-label="[SECTION // 04.00]">
+        <div class="unit-content text-xs uppercase text-[#ff2442] tracking-widest flex items-center gap-2">
+          <span class="w-6 h-[1px] bg-[#ff2442]"></span> [◈] // 04.00 THE 14-VECTOR CYBERSECURITY MATRIX
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        
+        <div class="hud-unit" data-label="[VEC // 01_ETHICAL]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#00f0ff] font-bold text-[10px]">[◈] VEC-01 // AUDIT</div>
+            <div class="text-white font-semibold mt-1">[§] Ethical Hacking</div>
+            <p class="text-gray-500 text-[10px] mt-1">Authorized intrusion detection, vulnerability modeling, and threat mitigation.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 02_NET_SEC]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#00f0ff] font-bold text-[10px]">[◈] VEC-02 // NET</div>
+            <div class="text-white font-semibold mt-1">[⎈] Network Security</div>
+            <p class="text-gray-500 text-[10px] mt-1">Packet sniffing analysis, TCP/IP handshakes, routing tables, and Wireshark logs.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 03_WEB_SEC]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#00f0ff] font-bold text-[10px]">[◈] VEC-03 // WEB_SEC</div>
+            <div class="text-white font-semibold mt-1">[λ] Web App Security</div>
+            <p class="text-gray-500 text-[10px] mt-1">OWASP Top 10 mitigation: XSS, SQLi, CSRF, and broken access control checks.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 04_SCAN]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#00f0ff] font-bold text-[10px]">[◈] VEC-04 // SCAN</div>
+            <div class="text-white font-semibold mt-1">[⌖] Vulnerability Assessment</div>
+            <p class="text-gray-500 text-[10px] mt-1">Systematic scanning of ports, unpatched software, and weak configurations.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 05_PENTEST]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#ff2442] font-bold text-[10px]">[⚡] VEC-05 // PENTEST</div>
+            <div class="text-white font-semibold mt-1">[◈] Penetration Testing</div>
+            <p class="text-gray-500 text-[10px] mt-1">Simulated attacks in isolated VM labs to evaluate perimeter defenses.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 06_PHISH]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#ff2442] font-bold text-[10px]">[⚡] VEC-06 // PHISH</div>
+            <div class="text-white font-semibold mt-1">[§] Phishing Defense</div>
+            <p class="text-gray-500 text-[10px] mt-1">Email header telemetry, social engineering detection, and SPF/DKIM verification.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 07_FORENSICS]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#ff2442] font-bold text-[10px]">[⚡] VEC-07 // FORENSICS</div>
+            <div class="text-white font-semibold mt-1">[λ] Digital Forensics</div>
+            <p class="text-gray-500 text-[10px] mt-1">Artifact recovery, log timestamps preservation, and file checksum analysis.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 08_KALI]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-[#ff2442] font-bold text-[10px]">[⚡] VEC-08 // OS_KALI</div>
+            <div class="text-white font-semibold mt-1">[⎈] Linux & Kali Tooling</div>
+            <p class="text-gray-500 text-[10px] mt-1">Nmap, Metasploit Framework concepts, John the Ripper, and CLI workflows.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 09_PY_SEC]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-emerald-400 font-bold text-[10px]">[⌘] VEC-09 // SCRIPT</div>
+            <div class="text-white font-semibold mt-1">[λ] Python for Cyber</div>
+            <p class="text-gray-500 text-[10px] mt-1">Custom port scanners, brute-force testing scripts, and automation hooks.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 10_INFOSEC]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-emerald-400 font-bold text-[10px]">[⌘] VEC-10 // INFOSEC</div>
+            <div class="text-white font-semibold mt-1">[◈] Information Security</div>
+            <p class="text-gray-500 text-[10px] mt-1">CIA Triad governance: Confidentiality, Integrity, and Availability protocols.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 11_OSINT]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-emerald-400 font-bold text-[10px]">[⌘] VEC-11 // INTEL</div>
+            <div class="text-white font-semibold mt-1">[⌖] OSINT Reconnaissance</div>
+            <p class="text-gray-500 text-[10px] mt-1">Public registry queries, metadata scraping, DNS records, and WHOIS parsing.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 12_CRYPTO]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-emerald-400 font-bold text-[10px]">[⌘] VEC-12 // CRYPTO</div>
+            <div class="text-white font-semibold mt-1">[§] Cryptography Concepts</div>
+            <p class="text-gray-500 text-[10px] mt-1">Symmetric vs Asymmetric encryption, SHA-256 hashing, and RSA keys.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 13_MALWARE]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-purple-400 font-bold text-[10px]">[⌬] VEC-13 // MALWARE</div>
+            <div class="text-white font-semibold mt-1">[⚡] Malware Analysis</div>
+            <p class="text-gray-500 text-[10px] mt-1">Static signature identification, behavioral sandboxing, and payload deconstruction.</p>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[VEC // 14_AWARENESS]">
+          <div class="unit-content p-3 bg-[#0a0a12] border border-[#1b1b28] rounded">
+            <div class="text-purple-400 font-bold text-[10px]">[⌬] VEC-14 // AWARENESS</div>
+            <div class="text-white font-semibold mt-1">[◈] Security Awareness</div>
+            <p class="text-gray-500 text-[10px] mt-1">User credential hygiene, MFA enforcement, and operational zero-trust training.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 05: ACADEMICS & ACTIVE SPRINTS (PULLED SEPARATELY) -->
+    <section id="education" class="space-y-6">
+      <div class="hud-unit inline-block" data-label="[SECTION // 05.00]">
+        <div class="unit-content text-xs uppercase text-[#ff2442] tracking-widest flex items-center gap-2">
+          <span class="w-6 h-[1px] bg-[#ff2442]"></span> [◈] // 05.00 ACADEMIC FOUNDATION & SPRINT ROADMAP
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-5 space-y-4">
+          <div class="hud-unit" data-label="[ACADEMIA // UNDERGRAD]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded corner-decor">
+              <div class="text-[10px] text-[#00f0ff] uppercase mb-1 flex items-center gap-1.5"><i data-lucide="award" class="w-3.5 h-3.5"></i> [◈] Undergraduate Program</div>
+              <h3 class="font-bold text-white text-sm font-['Space_Grotesk']">[⌬] BCA — Bachelor of Computer Applications</h3>
+              <p class="text-gray-400 text-xs mt-1">[›] KLE Society's S. Nijalingappa College</p>
+              <p class="text-gray-500 text-[11px] mt-0.5">[⌖] Bengaluru, Karnataka, India</p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[ACADEMIA // PRE_UNIVERSITY]">
+            <div class="unit-content border border-[#1b1b28] bg-[#0a0a12] p-5 rounded corner-decor">
+              <div class="text-[10px] text-[#ff2442] uppercase mb-1 flex items-center gap-1.5"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> [⚡] Pre-University Certification</div>
+              <h3 class="font-bold text-white text-sm font-['Space_Grotesk']">[§] ASC PU College</h3>
+              <p class="text-gray-400 text-xs mt-1">[›] Tollgate, Magadi Main Road</p>
+              <p class="text-gray-500 text-[11px] mt-0.5">[⌖] Karnataka, India</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 space-y-3">
+          <div class="hud-unit" data-label="[ROADMAP // SPRINT_01]">
+            <div class="unit-content border-l-2 border-emerald-500 bg-[#0a0a12] p-4 rounded border border-[#1b1b28]">
+              <div class="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3 h-3"></i> [✔] SPRINT 01 // CURRENT FOCUS</div>
+              <div class="font-bold text-white text-xs mt-0.5">[λ] Advanced Python Backends & REST Verification</div>
+              <p class="text-gray-400 text-[11px] mt-0.5">Developing decoupled Flask/FastAPI microservices, input sanitation middleware, and structured unit testing.</p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[ROADMAP // SPRINT_02]">
+            <div class="unit-content border-l-2 border-[#00f0ff] bg-[#0a0a12] p-4 rounded border border-[#1b1b28]">
+              <div class="text-[10px] text-[#00f0ff] font-mono flex items-center gap-1.5"><i data-lucide="activity" class="w-3 h-3"></i> [◈] SPRINT 02 // LAB EXPANSION</div>
+              <div class="font-bold text-white text-xs mt-0.5">[⎈] Kali Linux Exploitation & Network Defense</div>
+              <p class="text-gray-400 text-[11px] mt-0.5">Hands-on packet inspection, firewall configuration, automated vulnerability audits, and virtual target hardening.</p>
+            </div>
+          </div>
+
+          <div class="hud-unit" data-label="[ROADMAP // SPRINT_03]">
+            <div class="unit-content border-l-2 border-purple-500 bg-[#0a0a12] p-4 rounded border border-[#1b1b28]">
+              <div class="text-[10px] text-purple-400 font-mono flex items-center gap-1.5"><i data-lucide="layers" class="w-3 h-3"></i> [⌘] SPRINT 03 // FULL CYCLE</div>
+              <div class="font-bold text-white text-xs mt-0.5">[§] Full-Stack Data Dashboards & Automation</div>
+              <p class="text-gray-400 text-[11px] mt-0.5">Integrating Pandas analytics engines into interactive TypeScript frontends for real-time telemetry observation.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 06: TRANSMISSION / CONTACT TERMINAL (BUTTONS DRAWN SEPARATELY) -->
+    <section id="contact" class="border border-[#1b1b28] bg-[#0a0a12] p-8 rounded text-center space-y-5 corner-decor">
+      <div class="hud-unit inline-block" data-label="[HEADER // CONTACT]">
+        <div class="unit-content">
+          <h2 class="text-3xl sm:text-4xl font-black font-['Space_Grotesk'] text-white flex items-center justify-center gap-2">
+            <span class="text-[#ff2442]">[⚡]</span> Let's Build Something Extraordinary.
+          </h2>
+          <p class="text-xs text-gray-400 max-w-lg mx-auto leading-relaxed mt-2">
+            [◈] Seeking collaborations across cybersecurity research, Python software development, and modern reactive interfaces. Open to technical discussions, projects, and learning initiatives.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3 pt-2">
+        <div class="hud-unit" data-label="[BTN // EMAIL]">
+          <div class="unit-content">
+            <a href="mailto:pavanindrajith@gmail.com" id="copy-email-btn" class="inline-flex items-center gap-2 bg-[#ff2442] text-white text-xs font-bold uppercase px-6 py-3 rounded hover:bg-red-600 transition tracking-wider">
+              <i data-lucide="mail" class="w-4 h-4"></i> [►] Send Message (pavanindrajith@gmail.com)
+            </a>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[BTN // LINKEDIN]">
+          <div class="unit-content">
+            <a href="https://www.linkedin.com/in/pavan-gowda-79153a322/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 border border-[#1b1b28] bg-[#050508] text-gray-300 hover:text-white hover:border-[#ff2442] text-xs font-bold uppercase px-5 py-3 rounded transition tracking-wider">
+              <i data-lucide="linkedin" class="w-4 h-4 text-[#00f0ff]"></i> [⎈] LinkedIn Network ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="hud-unit" data-label="[BTN // GITHUB_LINK]">
+          <div class="unit-content">
+            <a href="https://github.com/pavanindrajith-sketch" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 border border-[#1b1b28] bg-[#050508] text-gray-300 hover:text-white hover:border-[#ff2442] text-xs font-bold uppercase px-5 py-3 rounded transition tracking-wider">
+              <i data-lucide="github" class="w-4 h-4 text-emerald-400"></i> [λ] GitHub Profile ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER (EVERY DETAIL ATOMIZED) -->
+  <footer class="border-t border-[#1b1b28] py-8 text-center text-xs text-gray-500 space-y-2">
+    <div class="hud-unit inline-block" data-label="[FOOTER // AUTHOR]">
+      <div class="unit-content">
+        <p>[◈] Designed & Engineered by <span class="text-white font-semibold">Pavan Gowda</span></p>
+      </div>
+    </div>
+    <div></div>
+    <div class="hud-unit inline-block" data-label="[FOOTER // COPYRIGHT]">
+      <div class="unit-content">
+        <p class="text-[11px] text-gray-600">[§] PAVAN.exe © 2026 // Bengaluru, India · Cybersecurity & Python Architecture</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    /* ========================================================
+       TOP-LEVEL STATE DECLARATIONS (SAFE FROM TDZ ReferenceError)
+    ======================================================== */
+    let isAtBottom = false;
+    let isScrolling = false;
+    let isInitialBuild = true;
+    let scrollStopTimer = null;
+    let leaderIndex = 0;
+    let leaderSwitcherTimer = null;
+    let lineFollowerTickerActive = false;
+    let circleAngle = 0; // Tracks the continuous orbital circle position
+    const constructionQueue = [];
+
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    /* LIVE IST CLOCK */
+    function updateClock() {
+      const now = new Date();
+      const el = document.getElementById('clock');
+      if (el) {
+        el.textContent = "[⌖] IST " + now.toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour12: false
+        });
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* LIVE TELEMETRY PING */
+    const telemetryBar = document.getElementById('telemetry-bar');
+    if (telemetryBar) {
+      setInterval(() => {
+        const ping = Math.floor(Math.random() * 8) + 12;
+        const busyCount = cursors.filter(c => c.isBusy).length;
+        telemetryBar.textContent = `[◈] SWARM: ${24 - busyCount}/24 IDLE · LATENCY: ${ping}ms`;
+      }, 2000);
+    }
+
+    /* SCROLL PROGRESS INDICATOR */
+    const hudProgressBar = document.getElementById('hud-progress');
+    window.addEventListener('scroll', () => {
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (hudProgressBar) {
+        hudProgressBar.style.width = scrolled + "%";
+      }
+    }, { passive: true });
+
+    /* CLIPBOARD TOAST HELPER */
+    function showToast(msg) {
+      const toast = document.getElementById('hud-toast');
+      const toastText = document.getElementById('toast-text');
+      if (toast && toastText) {
+        toastText.textContent = msg;
+        toast.style.display = 'flex';
+        gsap.fromTo(toast, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.2 });
+        setTimeout(() => {
+          gsap.to(toast, {
+            opacity: 0,
+            y: 10,
+            duration: 0.25,
+            onComplete: () => { toast.style.display = 'none'; }
+          });
+        }, 2400);
+      }
+    }
+
+    /* COPY EMAIL LISTENER */
+    const copyEmailBtn = document.getElementById('copy-email-btn');
+    if (copyEmailBtn) {
+      copyEmailBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText("pavanindrajith@gmail.com").then(() => {
+          showToast("[CLIPBOARD // pavanindrajith@gmail.com COPIED]");
+        }).catch(() => {});
+      });
+    }
+
+    /* ========================================================
+       24-CURSOR SWARM ENGINE SETUP
+    ======================================================== */
+    const swarmContainer = document.getElementById('swarm-canvas');
+    const TOTAL_CURSORS = 24;
+    const cursors = [];
+
+    const cursorLabels = [
+      'pg.core', 'sec.01', 'py.exec', 'bot.recon', 'sys.arch',
+      'kali.node', 'net.scan', 'mesh.node', 'web.ui', 'bot.audit',
+      'pg.kernel', 'sec.vec', 'pandas.io', 'net.sentinel', 'bot.x',
+      'agent.07', 'dev.ops', 'crypto.node', 'osint.bot', 'pg.shell',
+      'sec.lab', 'bot.fast', 'audit.node', 'pg.node'
+    ];
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    // Helper: Dynamic vector orientation
+    function orientCursor(cursorObj, deltaX, deltaY) {
+      if (Math.hypot(deltaX, deltaY) > 0.4) {
+        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 45;
+        const svg = cursorObj.el.querySelector('svg');
+        if (svg) gsap.set(svg, { rotate: angle });
+      }
+    }
+
+    // 1. Initialize persistent cluster
+    for (let i = 0; i < TOTAL_CURSORS; i++) {
+      const el = document.createElement('div');
+      el.className = 'swarm-cursor';
+      el.innerHTML = `
+        <svg viewBox="0 0 24 24">
+          <polygon points="3 3 10 21 14 13 22 10 3 3"/>
+        </svg>
+        <span class="cursor-tag">${cursorLabels[i % cursorLabels.length]}</span>
+      `;
+      swarmContainer.appendChild(el);
+
+      const startX = centerX + (Math.random() - 0.5) * 160;
+      const startY = centerY + (Math.random() - 0.5) * 160;
+      gsap.set(el, { x: startX, y: startY });
+
+      const cursorObj = {
+        id: i,
+        el,
+        x: startX,
+        y: startY,
+        prevX: startX,
+        prevY: startY,
+        isBusy: false,
+        tagEl: el.querySelector('.cursor-tag')
+      };
+
+      cursors.push(cursorObj);
+      startRoaming(cursorObj, i * 40);
+    }
+
+    // 2. Ambient wandering algorithm
+    function startRoaming(cursorObj, delay = 0) {
+      if (cursorObj.isBusy || isAtBottom) return;
+
+      const targetX = Math.random() * (window.innerWidth - 140) + 20;
+      const targetY = Math.random() * (window.innerHeight - 90) + 40;
+      const duration = Math.random() * 2.2 + 2.5;
+
+      cursorObj.tween = gsap.to(cursorObj.el, {
+        x: targetX,
+        y: targetY,
+        duration: duration,
+        delay: delay / 1000,
+        ease: 'sine.inOut',
+        onUpdate: () => {
+          const currentX = gsap.getProperty(cursorObj.el, 'x');
+          const currentY = gsap.getProperty(cursorObj.el, 'y');
+          orientCursor(cursorObj, currentX - cursorObj.prevX, currentY - cursorObj.prevY);
+          cursorObj.prevX = currentX;
+          cursorObj.prevY = currentY;
+          cursorObj.x = currentX;
+          cursorObj.y = currentY;
+        },
+        onComplete: () => {
+          if (!cursorObj.isBusy && !isAtBottom) {
+            setTimeout(() => startRoaming(cursorObj), Math.random() * 300 + 100);
+          }
+        }
+      });
+    }
+
+    // 3. Find closest idle cursor
+    function getClosestAvailableCursor(targetX, targetY) {
+      let closest = null;
+      let minDist = Infinity;
+      for (const c of cursors) {
+        if (!c.isBusy) {
+          const dist = Math.hypot(c.x - targetX, c.y - targetY);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = c;
+          }
+        }
+      }
+      return closest;
+    }
+
+    // 4. Physical Drag & Snap Routine for EVERY SINGLE MICRO-BOX
+    function drawMicroUnit(unitEl, assignedCursor) {
+      if (unitEl.dataset.constructed === "true") return;
+      unitEl.dataset.constructed = "true";
+
+      const content = unitEl.querySelector('.unit-content');
+      if (!content) return;
+
+      const labelText = unitEl.dataset.label || '[CONSTRUCT // ACTIVE]';
+      const rect = unitEl.getBoundingClientRect();
+
+      const cursorObj = assignedCursor || getClosestAvailableCursor(rect.left, rect.top);
+      if (!cursorObj) {
+        content.classList.add('revealed');
+        return;
+      }
+
+      cursorObj.isBusy = true;
+      if (cursorObj.tween) cursorObj.tween.kill();
+
+      const svg = cursorObj.el.querySelector('svg');
+      if (svg) gsap.to(svg, { rotate: 0, duration: 0.1 });
+
+      const wf = document.createElement('div');
+      wf.className = 'wireframe-box';
+      wf.innerHTML = `<span class="wireframe-label">${labelText}</span>`;
+      unitEl.appendChild(wf);
+
+      const w = Math.max(unitEl.offsetWidth, 40);
+      const h = Math.max(unitEl.offsetHeight, 20);
+
+      const tl = gsap.timeline();
+
+      tl.to(cursorObj.el, {
+        x: rect.left,
+        y: rect.top,
+        duration: 0.28,
+        ease: 'power3.out',
+        onUpdate: () => {
+          cursorObj.x = gsap.getProperty(cursorObj.el, 'x');
+          cursorObj.y = gsap.getProperty(cursorObj.el, 'y');
+        }
+      })
+      .to(cursorObj.el, {
+        x: rect.left + w,
+        y: rect.top + h,
+        duration: 0.42,
+        ease: 'power2.inOut',
+        onUpdate: function() {
+          const prog = this.progress();
+          gsap.set(wf, {
+            width: w * prog,
+            height: h * prog,
+            opacity: 1
+          });
+          cursorObj.x = gsap.getProperty(cursorObj.el, 'x');
+          cursorObj.y = gsap.getProperty(cursorObj.el, 'y');
+        }
+      }, 'pull')
+      .to(wf, {
+        borderColor: '#ff2442',
+        boxShadow: '0 0 20px rgba(255, 36, 66, 0.45)',
+        duration: 0.1
+      }, 'snap')
+      .add(() => {
+        content.classList.add('revealed');
+      }, 'snap')
+      .to(wf, { opacity: 0, duration: 0.16 }, 'snap+=0.08')
+      .add(() => {
+        wf.remove();
+        cursorObj.isBusy = false;
+        cursorObj.prevX = cursorObj.x;
+        cursorObj.prevY = cursorObj.y;
+        
+        processConstructionQueue();
+
+        if (!cursorObj.isBusy && !isAtBottom) {
+          startRoaming(cursorObj);
+        }
+      }, 'snap+=0.12');
+    }
+
+    /* ========================================================
+       QUEUE MANAGEMENT & SCROLL-BOUND CONTROLLER
+    ======================================================== */
+    function enqueueUnit(unitEl) {
+      if (unitEl.dataset.constructed === "true" || unitEl.dataset.queued === "true") return;
+      unitEl.dataset.queued = "true";
+      constructionQueue.push(unitEl);
+      processConstructionQueue();
+    }
+
+    function processConstructionQueue() {
+      if (isAtBottom) return;
+      if (!isInitialBuild && !isScrolling) return;
+
+      while (constructionQueue.length > 0) {
+        const availableCursor = cursors.find(c => !c.isBusy);
+        if (!availableCursor) break;
+        const nextUnit = constructionQueue.shift();
+        if (nextUnit && nextUnit.dataset.constructed !== "true") {
+          drawMicroUnit(nextUnit, availableCursor);
+        }
+      }
+    }
+
+    const scrollDot = document.getElementById('scroll-dot');
+    const scrollStateText = document.getElementById('scroll-state-text');
+
+    function checkVisibleScrollUnits() {
+      const visibleUnits = Array.from(document.querySelectorAll('.hud-unit:not([data-constructed="true"])')).filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.top < window.innerHeight + 50 && r.bottom > -50;
+      });
+
+      visibleUnits.forEach(unit => enqueueUnit(unit));
+    }
+
+    /* SCROLL LISTENER: ENFORCES SCROLL-ONLY PROGRESSION */
+    window.addEventListener('scroll', () => {
+      isScrolling = true;
+      if (scrollDot) scrollDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping';
+      if (scrollStateText) scrollStateText.textContent = '[SWARM // SCROLL_LOOP_ACTIVE]';
+
+      checkVisibleScrollUnits();
+      checkBottomPage();
+
+      clearTimeout(scrollStopTimer);
+      scrollStopTimer = setTimeout(() => {
+        isScrolling = false;
+        if (scrollDot) scrollDot.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500';
+        if (scrollStateText) scrollStateText.textContent = '[SWARM // SCROLL_PAUSED_IDLE]';
+      }, 250);
+    }, { passive: true });
+
+    /* INITIAL HERO LAUNCH: IMMEDIATELY PULLS HERO SECTION ON OPEN */
+    function launchInitialHeroBuild() {
+      isInitialBuild = true;
+      if (scrollDot) scrollDot.className = 'w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping';
+      if (scrollStateText) scrollStateText.textContent = '[SWARM // INITIALIZING_HERO_VIEW]';
+
+      const initialUnits = Array.from(document.querySelectorAll('.hud-unit')).filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.top < window.innerHeight && r.bottom > 0;
+      });
+
+      initialUnits.forEach((unit, idx) => {
+        setTimeout(() => {
+          enqueueUnit(unit);
+        }, idx * 30);
+      });
+
+      setTimeout(() => {
+        isInitialBuild = false;
+        if (scrollDot) scrollDot.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500';
+        if (scrollStateText) scrollStateText.textContent = '[SWARM // AWAITING_SCROLL_INPUT]';
+      }, 2000);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', launchInitialHeroBuild);
+    } else {
+      launchInitialHeroBuild();
+    }
+
+    /* ========================================================
+       BOTTOM OF PAGE: ALPHA MOVES IN A BIG CIRCLE,
+       ALL REST FOLLOW IN A SINGLE-FILE CONVOY LINE!
+    ======================================================== */
+    let followerChain = [];
+
+    function checkBottomPage() {
+      const scrollPos = window.innerHeight + window.scrollY;
+      const totalDocHeight = document.documentElement.scrollHeight;
+      const reachedBottom = (totalDocHeight - scrollPos) <= 80;
+
+      if (reachedBottom && !isAtBottom) {
+        isAtBottom = true;
+        startBottomLineConvoy();
+      } else if (!reachedBottom && isAtBottom) {
+        isAtBottom = false;
+        stopBottomLineConvoy();
+      }
+    }
+
+    function switchRandomLeader() {
+      leaderIndex = Math.floor(Math.random() * cursors.length);
+      followerChain = cursors.filter((_, i) => i !== leaderIndex);
+
+      cursors.forEach((c, i) => {
+        if (i === leaderIndex) {
+          c.tagEl.textContent = `[⚡ ALPHA // ${cursorLabels[i]}]`;
+          c.tagEl.style.borderColor = 'var(--hud-cyan)';
+          c.tagEl.style.color = '#00f0ff';
+          c.tagEl.style.background = 'rgba(0, 240, 255, 0.2)';
+        } else {
+          const rank = followerChain.indexOf(c) + 1;
+          const rankStr = rank < 10 ? `0${rank}` : `${rank}`;
+          c.tagEl.textContent = `[› LINE_${rankStr}]`;
+          c.tagEl.style.borderColor = 'rgba(255, 36, 66, 0.45)';
+          c.tagEl.style.color = '#ff2442';
+          c.tagEl.style.background = 'rgba(5, 5, 8, 0.9)';
+        }
+      });
+    }
+
+    /* KINEMATIC LINE & BIG CIRCLE ENGINE */
+    function updateConvoyLine() {
+      if (!isAtBottom) return;
+
+      const leader = cursors[leaderIndex];
+
+      // 1. ALPHA MOVES IN A BIG CIRCULAR ORBIT
+      circleAngle += 0.024; // Smooth angular orbital velocity
+      const circleCenterX = window.innerWidth / 2;
+      const circleCenterY = window.innerHeight / 2;
+      const radiusX = Math.min(window.innerWidth * 0.38, 440);
+      const radiusY = Math.min(window.innerHeight * 0.34, 280);
+
+      const nextLeaderX = circleCenterX + Math.cos(circleAngle) * radiusX;
+      const nextLeaderY = circleCenterY + Math.sin(circleAngle) * radiusY;
+
+      // Orient and set Alpha's position along the big circular tangent
+      orientCursor(leader, nextLeaderX - leader.x, nextLeaderY - leader.y);
+      leader.prevX = leader.x;
+      leader.prevY = leader.y;
+      leader.x = nextLeaderX;
+      leader.y = nextLeaderY;
+      gsap.set(leader.el, { x: leader.x, y: leader.y });
+
+      // 2. ALL REMAINING CURSORS FOLLOW IN SINGLE-FILE LINE BEHIND ALPHA
+      let prevTargetX = leader.x;
+      let prevTargetY = leader.y;
+      const SEGMENT_GAP = 28; // Spacing along the circular trail
+
+      followerChain.forEach((c) => {
+        if (c.tween) c.tween.kill();
+
+        const dx = prevTargetX - c.x;
+        const dy = prevTargetY - c.y;
+        const dist = Math.hypot(dx, dy);
+
+        // Chained inverse kinematics maintains the single-file line trailing
+        if (dist > SEGMENT_GAP) {
+          const moveRatio = (dist - SEGMENT_GAP) / dist;
+          c.x += dx * moveRatio * 0.35;
+          c.y += dy * moveRatio * 0.35;
+        }
+
+        // Orient heading along the curved path
+        orientCursor(c, dx, dy);
+        gsap.set(c.el, { x: c.x, y: c.y });
+
+        // Next cursor follows current cursor in line
+        prevTargetX = c.x;
+        prevTargetY = c.y;
+      });
+    }
+
+    function startBottomLineConvoy() {
+      showToast("[SWARM // ORBITAL CONVOY: ALPHA BIG CIRCLE ENGAGED]");
+      switchRandomLeader();
+
+      // Smoothly sync the initial circle angle with current leader location
+      const circleCenterX = window.innerWidth / 2;
+      const circleCenterY = window.innerHeight / 2;
+      const leader = cursors[leaderIndex];
+      circleAngle = Math.atan2(leader.y - circleCenterY, leader.x - circleCenterX);
+
+      // Periodically switch leader to any random cursor while keeping the big circle active!
+      leaderSwitcherTimer = setInterval(() => {
+        if (!isAtBottom) return;
+        switchRandomLeader();
+        const currentLead = cursors[leaderIndex];
+        circleAngle = Math.atan2(currentLead.y - circleCenterY, currentLead.x - circleCenterX);
+      }, 5000);
+
+      // Attach 60fps orbital tracker
+      if (!lineFollowerTickerActive) {
+        gsap.ticker.add(updateConvoyLine);
+        lineFollowerTickerActive = true;
+      }
+    }
+
+    function stopBottomLineConvoy() {
+      if (lineFollowerTickerActive) {
+        gsap.ticker.remove(updateConvoyLine);
+        lineFollowerTickerActive = false;
+      }
+      clearInterval(leaderSwitcherTimer);
+
+      const leader = cursors[leaderIndex];
+      if (leader && leader.tween) leader.tween.kill();
+
+      // Reset all cursor tags and styles back to standard roaming state
+      cursors.forEach((c, i) => {
+        c.tagEl.textContent = cursorLabels[i % cursorLabels.length];
+        c.tagEl.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+        c.tagEl.style.color = '#cbd5e1';
+        c.tagEl.style.background = 'rgba(5, 5, 8, 0.9)';
+        if (!c.isBusy) startRoaming(c);
+      });
+    }
+
+    // Interactive Click Attractor & Radar Ripple
+    window.addEventListener('pointerdown', (e) => {
+      const ripple = document.createElement('div');
+      ripple.className = 'radar-pulse';
+      ripple.style.left = e.clientX + 'px';
+      ripple.style.top = e.clientY + 'px';
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 800);
+
+      let idleAssigned = 0;
+      for (const c of cursors) {
+        if (!c.isBusy && idleAssigned < 2) {
+          idleAssigned++;
+          if (c.tween) c.tween.kill();
+          gsap.to(c.el, {
+            x: e.clientX + (Math.random() - 0.5) * 50,
+            y: e.clientY + (Math.random() - 0.5) * 50,
+            duration: 0.5,
+            ease: 'power2.out',
+            onComplete: () => {
+              c.prevX = gsap.getProperty(c.el, 'x');
+              c.prevY = gsap.getProperty(c.el, 'y');
+              if (!isAtBottom) startRoaming(c);
+            }
+          });
+        }
+      }
+    });
+
+    // Failsafe: Ensures all visible viewport content is revealed after 3s
+    setTimeout(() => {
+      document.querySelectorAll('.unit-content:not(.revealed)').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) {
+          el.classList.add('revealed');
+        }
+      });
+    }, 3000);
+  </script>
+</body>
+</html>
